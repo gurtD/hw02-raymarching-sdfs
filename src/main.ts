@@ -16,6 +16,8 @@ const controls = {
 
 let square: Square;
 let time: number = 0;
+let move: number = 0;
+let color: number = 0;
 
 function loadScene() {
   square = new Square(vec3.fromValues(0, 0, 0));
@@ -45,8 +47,30 @@ function main() {
   stats.domElement.style.top = '0px';
   document.body.appendChild(stats.domElement);
 
+  class Parameters {
+    movement: number;
+    colorCycle: number;
+    constructor(move: number, color: number) {
+      this.movement = move;
+      this.colorCycle = move;
+    }
+  
+  }
+
+  let parameters = new Parameters(0.1, 0.1);
+
   // Add controls to the gui
   const gui = new DAT.GUI();
+
+  gui.add(parameters, 'movement', 0.1, 1.0).onChange(function(val: number) {
+    parameters.movement = val;
+    flat.setMovement(val);
+    console.log(val);
+  }); // Min and max
+  gui.add(parameters, 'colorCycle', 0.1, 1).onChange(function(val: number) {
+    parameters.colorCycle = val;
+    flat.setColorChange(val);
+  }); // Min and max
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -87,6 +111,10 @@ function main() {
       square,
     ], time);
     time++;
+    move += parameters.movement;
+    color += parameters.colorCycle
+    flat.setColorChange(color);
+    flat.setMovement(move);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
