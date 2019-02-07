@@ -57,7 +57,7 @@ README contains the following information:
     how to make a live demo through github.io)
   - An explanation of the techniques you used to generate your planet features.
   Please be as detailed as you can; not only will this help you explain your work
-  to recruiters, but it helps us understand your project when we grade it!
+  to recruiters, but it helps us understand your project when we grade  it!
 
 ## Useful Links
 - [IQ's Article on SDFs](http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm)
