@@ -106,7 +106,7 @@ float innerBoxSDF3( vec3 p)
 }
 
 bool boundingBox ( vec3 p ) {
-  if ( p.x >= -12.5 && p.y >= -12.5 && p.z >= -12.5 && p.x <= 12.5 && p.y <= 12.5 && p.z <= 12.5 ) {
+  if ( p.x >= -15.0 && p.y >= -15.0 && p.z >= -15.0 && p.x <= 15.0 && p.y <= 15.0 && p.z <= 15.0 ) {
     return true;
   }
   return false;
@@ -117,10 +117,11 @@ bool sphere1BoundingBox ( vec3 p ) {
    1.0, 0.0, 0.0, 0.0, // first column (not row!)
    0.0, 1.0, 0.0, 0.0,// second column
    0.0, 0.0, 1.0, 0.0,// third column
-   sin(u_Time / 500.0) * 10.0, 0.0, 0.0, 1.0
+   sin( u_Movement / 50.0) * 10.0, 0.0, 0.0, 1.0
 );
   vec3 q = (inverse(translate) * vec4(p, 1.0)).xyz;
-  if ( q.x >= -3.0 && q.y >= -3.0 && q.z >= -3.0 && q.x <= 3.0 && q.y <= 3.0 && q.z <= 3.0 ) {
+  float dim = 4.0;
+  if ( q.x >= -dim && q.y >= -dim && q.z >= -dim && q.x <= dim && q.y <= dim && q.z <= dim ) {
     return true;
   }
   return false;
@@ -131,10 +132,12 @@ bool sphere2BoundingBox ( vec3 p ) {
    1.0, 0.0, 0.0, 0.0, // first column (not row!)
    0.0, 1.0, 0.0, 0.0,// second column
    0.0, 0.0, 1.0, 0.0,// third column
-   0.0, sin(u_Time / 500.0) * 10.0, 0.0, 1.0
+   0.0, sin( u_Movement / 50.0) * 10.0, 0.0, 1.0
 );
   vec3 q = (inverse(translate) * vec4(p, 1.0)).xyz;
-  if ( q.x >= -3.0 && q.y >= -3.0 && q.z >= -3.0 && q.x <= 3.0 && q.y <= 3.0 && q.z <= 3.0 ) {
+  
+  float dim = 4.0;
+  if ( q.x >= -dim && q.y >= -dim && q.z >= -dim && q.x <= dim && q.y <= dim && q.z <= dim ) {
     return true;
   }
   return false;
@@ -146,30 +149,40 @@ float sceneSDF( vec3 p ) {
     float rectIntersect1 = opSmoothUnion(innerBoxSDF1(p), innerBoxSDF2(p), 1.0);
     float rectIntersect2 = opSmoothUnion(rectIntersect1, innerBoxSDF3(p), 1.0);
     float squareCage = opSmoothSubtraction(rectIntersect2, roundBoxSDF(p), 1.0);
-    return opSmoothUnion(min(opSmoothUnion(sphere1SDF(p), sphere2SDF(p), 0.75), 1e10), squareCage, 1.0);
-    //float sphereIntersection = 1e10;
+    //return opSmoothUnion(min(opSmoothUnion(sphere1SDF(p), sphere2SDF(p), 0.75), 1e10), squareCage, 1.0);
+    
     bool sphere1Hit = sphere1BoundingBox(p);
     bool sphere2Hit = sphere2BoundingBox(p);
 
     if (sphere1Hit && sphere2Hit) {
       return opSmoothUnion(min(opSmoothUnion(sphere1SDF(p), sphere2SDF(p), 0.75), 1e10), squareCage, 1.0);
     } else if (sphere1Hit) {
-      //return sphere1SDF(p);
-      return opSmoothUnion(min(sphere1SDF(p), 1e10), squareCage, 1.0);
+       float check = min(min(sphere1SDF(p), 1e10), squareCage);
+      if (check < EPSILON) {
+        return check;
+      } else {
+        return 0.1;
+      }
+      //return min(min(sphere1SDF(p), 1e10), squareCage);//, 1.0);
     } else if (sphere2Hit) {
-      //return sphere2SDF(p);
-      return opSmoothUnion(min(sphere2SDF(p), 1e10), squareCage, 1.0);
+      float check = min(min(sphere2SDF(p), 1e10), squareCage);
+      if (check < EPSILON) {
+        return check;
+      } else {
+        return 0.1;
+      }
+      //return min(min(sphere2SDF(p), 1e10), squareCage);//, 1.0);
     } else {
       return squareCage;
     }
 
     
 
-    //return opSmoothUnion(min(opSmoothUnion(sphere1SDF(p), sphere2SDF(p), 0.75), 1e10), squareCage, 1.0);
+    
 
   }
   return 0.1;
-  }
+}
 
 
 
@@ -223,7 +236,4 @@ void main() {
     out_Col = vec4(0.5 * (ray_dir() + vec3(1.0, 1.0, 1.0)), 1.0);
   }
 
-  
-  //out_Col = vec4(0.5 * (fs_Pos + vec2(1.0)), 0.5 * (sin(u_Time * 3.14159 * 0.01) + 1.0), 1.0);
-  //out_Col = vec4(0.5 * (ray_dir() + vec3(1.0, 1.0, 1.0)), 1.0);
 }
